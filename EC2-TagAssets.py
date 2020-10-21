@@ -1,5 +1,3 @@
-## Python 3.8
-
 import boto3
 import logging
 
@@ -20,15 +18,17 @@ def lambda_handler(event, context):
     
     # List of tags to copy
     # WARNING: this will overwrite any existing tags
-    tags_to_use = ['Environment','Owner','Project']
+    tags_to_use = ['Environment']
     print("tags to copy ::", tags_to_use)
 
-    #instances = ec2.instances.all()
-    filters = [
-        {'Name': 'tag:Owner', 'Values': ['cc']}
-    ]
-    # get filtered instance list
-    instances = ec2.instances.filter(Filters=filters)
+    if debugMode:
+        # get filtered instance list instead
+        filters = [{'Name': 'tag:Owner', 'Values': ['cc']}]
+        instances = ec2.instances.filter(Filters=filters)
+    else:
+        # get list of ALL instances
+        instances = ec2.instances.all()
+    
     
     for instance in instances:
 
@@ -37,15 +37,17 @@ def lambda_handler(event, context):
         
         # tag EBS volumes
         for vol in instance.volumes.all():
-            print(f"Tagging volume {vol.id} from instance {instance.id}")
-            print(f"With tags: {to_tag}")
-            if not debugMode:
+            if debugMode:
+                print(f"Tagging volume {vol.id} from instance {instance.id}")
+                print(f"With tags: {to_tag}")
+            else:
                 vol.create_tags(Tags=to_tag)
 
         # tag network interfaces
         for eni in instance.network_interfaces:
-            print(f"Tagging interface {eni.id} from instance {instance.id}")
-            print(f"With tags: {to_tag}")
-            if not debugMode:
+            if debugMode:
+                print(f"Tagging interface {eni.id} from instance {instance.id}")
+                print(f"With tags: {to_tag}")
+            else:
                 eni.create_tags(Tags=to_tag)
 
