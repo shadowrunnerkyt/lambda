@@ -34,20 +34,26 @@ def lambda_handler(event, context):
 
         tags = instance.tags
         to_tag = [t for t in tags if t['Key'] in tags_to_use]
-        
-        # tag EBS volumes
-        for vol in instance.volumes.all():
-            if debugMode:
-                print(f"Tagging volume {vol.id} from instance {instance.id}")
-                print(f"With tags: {to_tag}")
-            else:
-                vol.create_tags(Tags=to_tag)
 
-        # tag network interfaces
-        for eni in instance.network_interfaces:
-            if debugMode:
-                print(f"Tagging interface {eni.id} from instance {instance.id}")
-                print(f"With tags: {to_tag}")
-            else:
-                eni.create_tags(Tags=to_tag)
+        # make sure there actually are tags to write
+        if len(to_tag) == 0:
+            print(instance.id,"has no tags to copy")
+            continue
+        else:
+            
+            # tag EBS volumes
+            for vol in instance.volumes.all():
+                if debugMode:
+                    print(f"Tagging volume {vol.id} from instance {instance.id}")
+                    print(f"With tags: {to_tag}")
+                else:
+                    vol.create_tags(Tags=to_tag)
+
+            # tag network interfaces
+            for eni in instance.network_interfaces:
+                if debugMode:
+                    print(f"Tagging interface {eni.id} from instance {instance.id}")
+                    print(f"With tags: {to_tag}")
+                else:
+                    eni.create_tags(Tags=to_tag)
 
